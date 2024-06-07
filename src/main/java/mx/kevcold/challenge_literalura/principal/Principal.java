@@ -1,9 +1,6 @@
 package mx.kevcold.challenge_literalura.principal;
 
-import mx.kevcold.challenge_literalura.model.Autor;
-import mx.kevcold.challenge_literalura.model.Datos;
-import mx.kevcold.challenge_literalura.model.DatosLibros;
-import mx.kevcold.challenge_literalura.model.Libro;
+import mx.kevcold.challenge_literalura.model.*;
 import mx.kevcold.challenge_literalura.repository.ILibrosRepository;
 import mx.kevcold.challenge_literalura.service.ConsumoApi;
 import mx.kevcold.challenge_literalura.service.ConvierteDatos;
@@ -62,20 +59,20 @@ public class Principal {
                         "\n------------- LIBRO \uD83D\uDCD9  --------------" +
                                 "\nTítulo: " + libroBuscado.get().titulo() +
                                 "\nAutor: " + libroBuscado.get().autor().stream()
-                                .map(a -> a.nombre()).limit(1).collect(Collectors.joining()) +
+                                .map(DatosAutor::nombre).limit(1).collect(Collectors.joining()) +
                                 "\nIdioma: " + libroBuscado.get().idiomas().stream().collect(Collectors.joining()) +
                                 "\nNúmero de descargas: " + libroBuscado.get().numeroDescargas() +
                                 "\n--------------------------------------\n"
                 );
 
                 try {
-                    List<Libro> libroEncontrado = libroBuscado.stream().map(a -> new Libro(a)).collect(Collectors.toList());
+                    List<Libro> libroEncontrado = libroBuscado.stream().map(Libro::new).collect(Collectors.toList());
                     Autor autorAPI = libroBuscado.stream().
                             flatMap(l -> l.autor().stream()
                                     .map(a -> new Autor(a)))
                             .collect(Collectors.toList()).stream().findFirst().get();
                     Optional<Autor> autorBD = repository.buscarAutorPorNombre(libroBuscado.get().autor().stream()
-                            .map(a -> a.nombre())
+                            .map(DatosAutor::nombre)
                             .collect(Collectors.joining()));
                     Optional<Libro> libroOptional = repository.buscarLibroPorNombre(nombre);
                     if (libroOptional.isPresent()) {

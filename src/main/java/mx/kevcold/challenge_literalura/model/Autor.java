@@ -19,8 +19,12 @@ public class Autor {
 
     //Constuctores
     public Autor(){
-
     }
+
+    public Autor(String nombre) {
+        this.nombre = nombre;
+    }
+
     public Autor(DatosAutor datosAutor){
         this.nombre = datosAutor.nombre();
         this.fechaNacimiento = datosAutor.fechaNacimiento();

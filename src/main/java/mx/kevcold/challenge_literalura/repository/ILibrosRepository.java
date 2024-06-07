@@ -16,3 +16,4 @@ public interface ILibrosRepository extends JpaRepository<Autor, Long> {
     @Query("SELECT a FROM Libro l JOIN l.autor a WHERE a.nombre LIKE %:nombre%")
     Optional<Autor> buscarAutorPorNombre(@Param("nombre") String nombre);
 }
+
