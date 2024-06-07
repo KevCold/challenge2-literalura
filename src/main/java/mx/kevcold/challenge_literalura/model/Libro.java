@@ -6,8 +6,7 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "libros")
 public class Libro {
-    //Atributos
-    @jakarta.persistence.Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String titulo;
