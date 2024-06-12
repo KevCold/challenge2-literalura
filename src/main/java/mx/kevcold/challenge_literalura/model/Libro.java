@@ -14,11 +14,12 @@ public class Libro {
     private Idioma idioma;
     private Integer numeroDescargas;
     @ManyToOne
+    @JoinColumn(name = "autor_id")
     private Autor autor;
+
 
     //Constructores
     public Libro() {
-
     }
 
     public Libro(DatosLibros libro) {
@@ -27,8 +28,8 @@ public class Libro {
         this.idioma = Idioma.fromString(libro.idiomas().stream().limit(1).collect(Collectors.joining()));
         this.numeroDescargas = libro.numeroDescargas();
     }
-    // Getters y setters
 
+    // Getters y setters
     public Long getId() {
         return id;
     }

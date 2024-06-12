@@ -6,10 +6,9 @@ import java.util.List;
 @Entity
 @Table(name = "datos_autores")
 public class Autor {
-    @jakarta.persistence.Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true)
     private String nombre;
     private Integer fechaNacimiento;
     private Integer fechaFallecimiento;
@@ -17,15 +16,15 @@ public class Autor {
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Libro> libros;
 
-    //Constuctores
-    public Autor(){
+    // Constructores
+    public Autor() {
     }
 
     public Autor(String nombre) {
         this.nombre = nombre;
     }
 
-    public Autor(DatosAutor datosAutor){
+    public Autor(DatosAutor datosAutor) {
         this.nombre = datosAutor.nombre();
         this.fechaNacimiento = datosAutor.fechaNacimiento();
         this.fechaFallecimiento = datosAutor.fechaFallecimiento();
