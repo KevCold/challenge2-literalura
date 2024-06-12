@@ -1,31 +1,35 @@
 package mx.kevcold.challenge_literalura.model;
 
 import jakarta.persistence.*;
-import java.util.stream.Collectors;
 
+/**
+ * Clase que representa un libro.
+ */
 @Entity
 @Table(name = "libros")
 public class Libro {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String titulo;
+    private Long id;                        // ID del libro
+    private String titulo;                  // Título del libro
     @Enumerated(EnumType.STRING)
-    private Idioma idioma;
-    private Integer numeroDescargas;
+    private Idioma idioma;                 // Idioma del libro
+    private Integer numeroDescargas;       // Número de descargas del libro
     @ManyToOne
-    @JoinColumn(name = "autor_id")
-    private Autor autor;
+    private Autor autor;                   // Autor del libro
 
-
-    //Constructores
+    // Constructores
     public Libro() {
     }
 
+    /**
+     * Constructor para crear un objeto Libro a partir de los datos de un libro obtenidos de la API.
+     *
+     * @param libro Los datos del libro obtenidos de la API.
+     */
     public Libro(DatosLibros libro) {
         this.id = libro.id();
         this.titulo = libro.titulo();
-        this.idioma = Idioma.fromString(libro.idiomas().stream().limit(1).collect(Collectors.joining()));
+        this.idioma = Idioma.fromString(libro.idiomas().stream().limit(1).findFirst().orElse(""));
         this.numeroDescargas = libro.numeroDescargas();
     }
 
@@ -73,10 +77,10 @@ public class Libro {
     @Override
     public String toString() {
         return "Libro: " +
-                "id= " + id +
-                ", titulo=' " + titulo + '\'' +
-                ", idioma= " + idioma +
-                ", número descargas= " + numeroDescargas +
-                ", autor= " + autor;
+                "id=" + id +
+                ", titulo='" + titulo + '\'' +
+                ", idioma=" + idioma +
+                ", número descargas=" + numeroDescargas +
+                ", autor=" + autor;
     }
 }

@@ -1,9 +1,12 @@
 package mx.kevcold.challenge_literalura.principal;
 
 import mx.kevcold.challenge_literalura.model.*;
+import mx.kevcold.challenge_literalura.repository.IAutorRepository;
 import mx.kevcold.challenge_literalura.repository.ILibrosRepository;
 import mx.kevcold.challenge_literalura.service.ConsumoApi;
 import mx.kevcold.challenge_literalura.service.ConvierteDatos;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.IntSummaryStatistics;
 import java.util.List;
@@ -11,15 +14,21 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+@Component
 public class Principal {
     private static final String URL_BASE = "https://gutendex.com/books/";
-    private ILibrosRepository repository;
-    private Scanner teclado = new Scanner(System.in);
-    private ConsumoApi consumoApi = new ConsumoApi();
-    private ConvierteDatos conversor = new ConvierteDatos();
+    private final ILibrosRepository repository;
+    private final IAutorRepository autorRepo;
+    private final ConsumoApi consumoApi;
+    private final ConvierteDatos conversor;
+    private final Scanner teclado = new Scanner(System.in);
 
-    public Principal(ILibrosRepository repository) {
+    @Autowired
+    public Principal(ILibrosRepository repository, IAutorRepository autorRepo, ConsumoApi consumoApi, ConvierteDatos conversor) {
         this.repository = repository;
+        this.autorRepo = autorRepo;
+        this.consumoApi = consumoApi;
+        this.conversor = conversor;
     }
 
     public void muestraElMenu() {
@@ -78,27 +87,9 @@ public class Principal {
                 );
 
                 try {
-                    List<Libro> libroEncontrado = libroBuscado.stream().map(Libro::new).collect(Collectors.toList());
-                    Autor autorAPI = libroBuscado.stream()
-                            .flatMap(l -> l.autor().stream().map(Autor::new))
-                            .findFirst().get();
-                    Optional<Autor> autorBD = repository.buscarAutorPorNombre(libroBuscado.get().autor().stream()
-                            .map(DatosAutor::nombre)
-                            .collect(Collectors.joining()));
-                    Optional<Libro> libroOptional = repository.buscarLibroPorNombre(nombre);
-                    if (libroOptional.isPresent()) {
-                        System.out.println("El libro ya está guardado en la BD.");
-                    } else {
-                        Autor autor;
-                        if (autorBD.isPresent()) {
-                            autor = autorBD.get();
-                            System.out.println("El autor ya está guardado en la BD");
-                        } else {
-                            autor = autorAPI;
-                            repository.save(autor);
-                        }
-                        autor.setLibros(libroEncontrado);
-                        repository.save(autor);
+                    List<DatosLibros> datosLibro = datos.libros();
+                    for (DatosLibros datosLibros : datosLibro){
+                        Libro libroEncontrado = convertirAEntidadLibro(datosLibros);
                     }
                 } catch (Exception e) {
                     System.out.println("Warning! " + e.getMessage());
@@ -125,7 +116,6 @@ public class Principal {
             System.out.println("Lo sentimos no hemos encontrado el autor que buscas");
         }
     }
-
     public void listaLibrosRegistrados() {
         List<Libro> libros = repository.buscarTodosLosLibros();
         libros.forEach(l -> System.out.println(
@@ -139,7 +129,7 @@ public class Principal {
     }
 
     public void listaAutoresRegistrados() {
-        List<Autor> autores = repository.findAll();
+        List<Autor> autores = autorRepo.findAll();
         System.out.println();
         autores.forEach(l -> System.out.println(
                 "Autor: " + l.getNombre() +
@@ -309,5 +299,56 @@ public class Principal {
         System.out.println("Máxima de descargas: " + est.getMax());
         System.out.println("Mínima de descargas: " + est.getMin());
         System.out.println("Total registros para calcular las estadísticas: " + est.getCount());
+    }
+
+    public Libro convertirAEntidadLibro(DatosLibros datosLibro) {
+        if (datosLibro == null) {
+            return null; // Retorna null si datosLibro es nulo
+        }
+
+        Libro libro = new Libro();
+
+        Optional<Libro> libroEncontrado = repository.findById(datosLibro.id());
+        if (libroEncontrado.isPresent()) {
+            libro = libroEncontrado.get();
+        } else {
+            libro.setId(datosLibro.id());
+            libro.setTitulo(datosLibro.titulo());
+
+            // Establecer idioma
+            if (datosLibro.idiomas() != null && !datosLibro.idiomas().isEmpty()) {
+                Idioma enumLenguaje = null;
+                for (String lenguaje : datosLibro.idiomas()) {
+                    enumLenguaje = Idioma.fromString(lenguaje);
+                    libro.setIdioma(enumLenguaje);
+                }
+                if (enumLenguaje == null) {
+                    libro.setIdioma(Idioma.OTRO);
+                }
+            }
+
+            libro.setNumeroDescargas(datosLibro.numeroDescargas());
+
+            // Establecer autores
+            List<DatosAutor> datosAutores = datosLibro.autor();
+            for (DatosAutor datosAutor : datosAutores) {
+                Autor autor = autorRepo.findByNombreAndFechaNacimientoAndFechaFallecimiento(
+                        datosAutor.nombre(), datosAutor.fechaNacimiento(), datosAutor.fechaFallecimiento());
+
+                if (autor == null) {
+                    autor = new Autor();
+                    autor.setNombre(datosAutor.nombre());
+                    autor.setFechaNacimiento(datosAutor.fechaNacimiento());
+                    autor.setFechaFallecimiento(datosAutor.fechaFallecimiento());
+                    autorRepo.save(autor);
+                }
+                libro.setAutor(autor);
+            }
+
+            // Guardar el libro en el repositorio
+            repository.save(libro);
+        }
+
+        return libro;
     }
 }

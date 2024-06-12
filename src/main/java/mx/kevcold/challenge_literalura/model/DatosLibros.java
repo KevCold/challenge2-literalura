@@ -5,11 +5,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
 
+/**
+ * Clase que representa los datos de un libro obtenidos de la API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record DatosLibros(
-        @JsonAlias("id") Long id,
-        @JsonAlias("title") String titulo,
-        @JsonAlias("authors") List<DatosAutor> autor,
-        @JsonAlias("languages") List<String> idiomas,
-        @JsonAlias("download_count") Integer numeroDescargas) {
+        @JsonAlias("id") Long id,                           // ID del libro
+        @JsonAlias("title") String titulo,                  // Título del libro
+        @JsonAlias("authors") List<DatosAutor> autor,       // Lista de autores del libro
+        @JsonAlias("languages") List<String> idiomas,       // Lista de idiomas del libro
+        @JsonAlias("download_count") Integer numeroDescargas // Número de descargas del libro
+) {
 }
